@@ -1,34 +1,40 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(humanoid_nav_msgs)
 
-#List to make rest of code more readable
-set( MESSAGE_DEPENDENCIES std_msgs geometry_msgs actionlib_msgs)
+# Add flags to support compiling on windows, since ROS2 supports it
+if(NOT WIN32)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra")
+endif()
 
 #Declare build dependencies
-find_package(catkin REQUIRED
-    COMPONENTS
-    message_generation
-    ${MESSAGE_DEPENDENCIES} )
+find_package(ament_cmake REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(actionlib_msgs REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
 
 #Add message files
-add_message_files(DIRECTORY msg FILES StepTarget.msg)
+set(msg_files "msg/StepTarget.msg")
 
 #Add service files
-add_service_files(DIRECTORY srv
-    FILES
-    ClipFootstep.srv
-    PlanFootsteps.srv
-    PlanFootstepsBetweenFeet.srv
-    StepTargetService.srv )
+set(srv_files
+    "srv/ClipFootstep.srv"
+    "srv/PlanFootsteps.srv"
+    "srv/PlanFootstepsBetweenFeet.srv"
+    "srv/StepTargetService.srv")
 
 #Add action files
-add_action_files(DIRECTORY action
-    FILES
-    ExecFootsteps.action)
+set(action_files
+    "action/ExecFootsteps.action")
 
 #And now generate the messages
-generate_messages(DEPENDENCIES ${MESSAGE_DEPENDENCIES})
+rosidl_generate_interfaces(${PROJECT_NAME}
+    ${msg_files}
+    ${srv_files}
+    ${action_files}
+    DEPENDENCIES geometry_msgs actionlib_msgs rosidl_default_generators)
 
 # Generate catkin/pkg-config import information
-catkin_package( CATKIN_DEPENDS message_runtime ${MESSAGE_DEPENDENCIES} )
+ament_export_dependencies(rosidl_default_runtime)
+
+ament_package()
 
